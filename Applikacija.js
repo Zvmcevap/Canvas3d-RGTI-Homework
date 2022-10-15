@@ -61,6 +61,7 @@ export class Aplikacija {
     ];
 
     // Če hočemo 3+ dimenzije spakirat v 2 dimenzionalni prostor brez perspektive pomnožimo vektor s spodnjo matriko
+    // Ubistvu ne rabmo, lahk sam vzamemo x in y vektorja in je isti k.... perspektivna projekcija bo večji zaplet.
     this.projekcijskaOrtografskaMatrika = [
       [1, 0, 0, 0],
       [0, 1, 0, 0],
@@ -84,7 +85,7 @@ export class Aplikacija {
     // Tipke na tipkovnici (Zmešnjava je ta JS)
     document.app = this;
     document.addEventListener("keydown", function (event) {
-      const key = event.key; // "a", "1", "Shift", etc.
+      const key = event.key;
       this.app.wasdButtonClick(key);
     });
 
@@ -112,6 +113,22 @@ export class Aplikacija {
     this.buttonE = document.getElementById("e");
     this.buttonE.app = this;
     this.buttonE.addEventListener("click", this.wasdButtonClick);
+
+    // Baby, round, round...
+    this.spinXYeah = false;
+    this.buttonSpinX = document.getElementById("spinx");
+    this.buttonSpinX.app = this;
+    this.buttonSpinX.addEventListener("click", this.spinXToggle);
+
+    this.spinYYeah = false;
+    this.buttonSpinY = document.getElementById("spiny");
+    this.buttonSpinY.app = this;
+    this.buttonSpinY.addEventListener("click", this.spinYToggle);
+
+    this.spinZYeah = false;
+    this.buttonSpinZ = document.getElementById("spinz");
+    this.buttonSpinZ.app = this;
+    this.buttonSpinZ.addEventListener("click", this.spinZToggle);
 
     // Številčna Polja
     this.fieldScaleX = document.getElementById("scale-x");
@@ -211,6 +228,17 @@ export class Aplikacija {
   // Radio gumbi določajo na katero obliko transformacije WASD gumbi vplivajo
   radioOnChange() {
     this.app.tranformationType = this.value;
+  }
+
+  // S temi tremi togli bom vrtel objekt konstantno med frame-i, yeah?
+  spinXToggle() {
+    this.app.spinXYeah = !this.app.spinXYeah;
+  }
+  spinYToggle() {
+    this.app.spinYYeah = !this.app.spinYYeah;
+  }
+  spinZToggle() {
+    this.app.spinZYeah = !this.app.spinZYeah;
   }
 
   // Polja s številkami posodobijo sezname transformacij (indeksi 0, 1, 2, 3 so x, y, z, w (w zaenkrat skos 1))
@@ -606,7 +634,7 @@ export class Aplikacija {
         context.beginPath();
         context.moveTo(700 + this.seznamOglisc[zacetnoOglisceIndeks].risaniVektor[0] * 100, 350 + this.seznamOglisc[zacetnoOglisceIndeks].risaniVektor[1] * 100);
         context.lineTo(700 + this.seznamOglisc[koncnoOglisceIndeks].risaniVektor[0] * 100, 350 + this.seznamOglisc[koncnoOglisceIndeks].risaniVektor[1] * 100);
-        context.lineWidth = 5;
+        context.lineWidth = 1;
         context.stroke();
       }
     }
@@ -618,6 +646,15 @@ export class Aplikacija {
 
   update(app) {
     app.canvasContext.clearRect(0, 0, app.canvas.width, app.canvas.height);
+    if(app.spinXYeah) {
+      app.incrementXPlus();
+    }
+    if(app.spinYYeah) {
+      app.incrementYPlus();
+    }
+    if(app.spinZYeah) {
+      app.incrementZPlus();
+    }
     for (const oglisce of app.seznamOglisc) {
       const vektor = app.zmnoziMatrike(app.transformacijskaMatrika, [
         oglisce.zacetneKoordinate,

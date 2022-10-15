@@ -10,6 +10,8 @@ export class Oglisce {
     ];
   }
 
+  // Rišemo tako, da najdemo sredino (x je 700, y pa 350), prištejemo lokacijo točke, in pomnožimo z magar 100, tako da je 100px razlike med najbolj desno
+  // najbol levo- oziroma najbolj gor in najbolj dol, oziroma kvadratnikoren od dva od najbolj desnogor do najbolj desnodol itd itd...
   // Nariše okrogla vozlišča
   // arc(x, y, r, začetni kot, končni kot) --- x, y sta središčne koordinate krogota, r je polmer, kot povek kok kroga nariše 2 pija je cel krog 
   narisiOglisce(ctx) {
