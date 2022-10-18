@@ -388,7 +388,8 @@ export class Aplikacija {
   /************************************** **********************************/
 
   ustvariSeznamOglisc() {
-    const tekstovnaLista = this.prebranaDatoteka.split("\r\n");
+    const tekstovnaLista = this.prebranaDatoteka.split("\n");
+
     this.seznamOglisc = [];
     this.seznamPovezav = [];
 
@@ -536,12 +537,12 @@ export class Aplikacija {
     let rotMatrikaXY = [
       [
         Math.cos(this.rotacijaSeznam[2]),
-        Math.sin(this.rotacijaSeznam[2]),
+        -Math.sin(this.rotacijaSeznam[2]),
         0,
         0,
       ],
       [
-        -Math.sin(this.rotacijaSeznam[2]),
+        Math.sin(this.rotacijaSeznam[2]),
         Math.cos(this.rotacijaSeznam[2]),
         0,
         0,
@@ -595,20 +596,52 @@ export class Aplikacija {
   // Ko jo enkrat izračunamo lahko vsako točko pomnožimo z njo da ugotovimo kje v 3D svetu se nahaja ta točka trenutno.
   // Sevede moramo potem pri izrisu to pomnožit še s projekcijsko matriko haha nikad kraja tem matrikam
   // Vrstni red je baje najprej povečava, potem rotacija in nazadnje premik
+
   getTransformacijskaMatrika() {
+
+    // Prvo Množenja
+    /* Preveri še kaj se dogaja če najprej premaknemo in potem skal, rot... -- Ne pozabi začet z enotsko matriko
+    this.transformacijskaMatrika = this.zmnoziMatrike(
+        this.getTranslacijskaMatrika(),
+        this.enotskaMatrika
+    );
+  */
     this.transformacijskaMatrika = this.zmnoziMatrike(
       this.getSkalarnaMatrika(),
       this.enotskaMatrika
     );
+
+    // Drugo Množenje
+    // getRotacijskaMatrika() vs getRotacijskaMatrikaXYZLOL() - z rot. matrikami ni šale
     this.transformacijskaMatrika = this.zmnoziMatrike(
       this.getRotacijskaMatrika(),
       this.transformacijskaMatrika
     );
+
+    /* Tretje Množenje*/
     this.transformacijskaMatrika = this.zmnoziMatrike(
       this.getTranslacijskaMatrika(),
       this.transformacijskaMatrika
     );
   }
+
+  /************************************** **********************************/
+  // Perspektiva - Mozak pored kompa, i nezdrava klopa... -
+  /************************************** **********************************/
+  // Ta je kr zapletus maximus, ker moramo vzet v upoštev cel kp stari.
+
+  // Stvar #1:
+  // aspect ratio -- višina versus dolžina ali dolžina versus višina (16:9 za monitorje naprimer,
+  // 2:1 (oz. 1:2) za ta canvas k sm ga jst kle narisu).
+
+
+  // Field of View (Polje Pogleda??) - to je kot, s katerim večamo polje našega pogleda.. večji kot, bolj širok je
+  // pogled (fish-eye fora), manjši je kot bl je zoom-iran..
+  // Se prav, večji kot, večji je naš pogled in posamezen objekt je manjši.. manjši kot vidimo manj in so objekti večji.
+  // Povezan je z aspect ratiom - če vzamemo višino/dolžino  gledamo fov kot po vertikali,
+  // če vzamemo dolžino/višino pa po horizontali.
+
+
 
   /************************************** **********************************/
   // Funkcije za risanje po platnu
