@@ -31,6 +31,8 @@ export class Aplikacija {
       let response = await fetch(datoteka);
       this.prebranaDatoteka = await response.text();
       this.ustvariSeznamOglisc();
+      this.getTransformacijskaMatrika();
+      this.posodobiKoordinateOglisc();
     };
     preberi(this.imeTextDatoteke);
 
@@ -47,9 +49,6 @@ export class Aplikacija {
     this.seznamOglisc = [];
     this.seznamPovezav = [];
     this.ustvariSeznamOglisc();
-
-    this.aliNarisemOglisca = true;
-    this.aliNarisemPovezave = true;
 
     // indexi 0, 1, 2 so x, y, z, w
     // Enotska Matrika je kinda big deal, to nariše točke, črte, objekt brez kakršne koli transformacije, pač najbl vanilla, dolgčas 1:1 preslikava možna
@@ -69,6 +68,14 @@ export class Aplikacija {
       [0, 0, 0, 0],
     ];
 
+    // Perspektivna Projekcija
+    this.perspektivnaMatrika = [
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 1, 0],
+    ];
+
     // Transformacijska Matrika začne svojo avanturo kot enotska matrika,
     // ki jo potem popačimo (pomnožimo) s skalarno, rotacijsko in nenazadnje (ampak ubistvu nujno nazadnje) s premično matriko
     this.transformacijskaMatrika = [...this.enotskaMatrika];
@@ -76,11 +83,78 @@ export class Aplikacija {
     // Različni seznami s katerimi bomo ustvarjal transformacijsko matriko
     this.skalarSeznam = [1, 1, 1, 1];
     this.rotacijaSeznam = [0, 0, 0, 0];
-    this.premikSeznam = [0, 0, 0, 1];
+    this.premikSeznam = [0, 0, 1, 1];
 
     /************************************** **********************************/
     // Kontrole, različni inputi etc etc
     /************************************** **********************************/
+
+    // Kaj rišemo na platno - true/false
+    this.aliNarisemOglisca = true;
+    this.ogliscaCheckbox = document.getElementById("narisiOglisce")
+    this.ogliscaCheckbox.checked = true;
+    this.ogliscaCheckbox.addEventListener("change", function () {
+      document.app.aliNarisemOglisca = this.checked
+    })
+
+    this.aliNarisemPovezave = true;
+    this.povezaveCheckbox = document.getElementById("narisiPovezave")
+    this.povezaveCheckbox.checked = true;
+    this.povezaveCheckbox.addEventListener("change", function () {
+      document.app.aliNarisemPovezave = this.checked
+    })
+
+    this.aliNarisemKoordinateOglisc = true;
+    this.koordinateCheckbox = document.getElementById("narisiKoordinate")
+    this.koordinateCheckbox.checked = true;
+    this.koordinateCheckbox.addEventListener("change", function () {
+      document.app.aliNarisemKoordinateOglisc = this.checked
+    })
+
+
+    // Perspektiva
+    this.aliNarisemSPerspektivo = false;
+    this.perspektivaCheckbox = document.getElementById("perspektiva")
+    this.perspektivaCheckbox.checked = false;
+    this.perspektivaCheckbox.addEventListener("change", function () {
+      document.app.aliNarisemSPerspektivo = this.checked
+      document.app.posodobiKoordinateOglisc();
+    })
+
+    // FOV kot v stopinjah po x koordinati (okol 85 stopinj imajo igrice +-20 stopinj)
+    this.fovX = 85
+    this.fieldFovX = document.getElementById("fovx")
+    this.fieldFovX.value = this.fovX
+    this.fieldFovX.addEventListener("change", function () {
+      document.app.fovX = this.valueAsNumber
+      document.app.posodobiKoordinateOglisc();
+    })
+    this.fieldFovX.addEventListener("mouseover", function () {
+      this.focus()
+    })
+
+    this.zNear = 1
+    this.fieldZNear = document.getElementById("zNear")
+    this.fieldZNear.value = this.zNear;
+    this.fieldFovX.addEventListener("change", function () {
+      document.app.zNear = this.valueAsNumber;
+      document.app.posodobiKoordinateOglisc();
+    })
+    this.fieldZNear.addEventListener("mouseover", function () {
+      this.focus()
+    })
+
+    this.zFar = 10
+    this.fieldZFar = document.getElementById("zFar")
+    this.fieldZFar.value = this.zFar
+    this.fieldZFar.addEventListener("change", function () {
+      document.app.zFar = this.valueAsNumber;
+      document.app.posodobiKoordinateOglisc();
+    })
+    this.fieldZFar.addEventListener("mouseover", function () {
+      this.focus()
+    })
+
 
     // Tipke na tipkovnici (Zmešnjava je ta JS)
     document.app = this;
@@ -256,9 +330,9 @@ export class Aplikacija {
       1,
     ];
     this.app.rotacijaSeznam = [
-      this.app.fieldRotateX.valueAsNumber,
-      this.app.fieldRotateY.valueAsNumber,
-      this.app.fieldRotateZ.valueAsNumber,
+      this.app.fieldRotateX.valueAsNumber * Math.PI/180,
+      this.app.fieldRotateY.valueAsNumber * Math.PI/180,
+      this.app.fieldRotateZ.valueAsNumber * Math.PI/180,
       1,
     ];
     this.app.getTransformacijskaMatrika();
@@ -299,7 +373,7 @@ export class Aplikacija {
   incrementXPlus() {
     switch (this.tranformationType) {
       case "rotation":
-        this.fieldRotateX.valueAsNumber += 0.1;
+        this.fieldRotateX.valueAsNumber += 1;
         break;
       case "scale":
         this.fieldScaleX.valueAsNumber += 0.1;
@@ -313,7 +387,7 @@ export class Aplikacija {
   incrementXMinus() {
     switch (this.tranformationType) {
       case "rotation":
-        this.fieldRotateX.valueAsNumber -= 0.1;
+        this.fieldRotateX.valueAsNumber -= 1;
         break;
       case "scale":
         this.fieldScaleX.valueAsNumber -= 0.1;
@@ -328,7 +402,7 @@ export class Aplikacija {
   incrementYPlus() {
     switch (this.tranformationType) {
       case "rotation":
-        this.fieldRotateY.valueAsNumber += 0.1;
+        this.fieldRotateY.valueAsNumber += 1;
         break;
       case "scale":
         this.fieldScaleY.valueAsNumber += 0.1;
@@ -342,7 +416,7 @@ export class Aplikacija {
   incrementYMinus() {
     switch (this.tranformationType) {
       case "rotation":
-        this.fieldRotateY.valueAsNumber -= 0.1;
+        this.fieldRotateY.valueAsNumber -= 1;
         break;
       case "scale":
         this.fieldScaleY.valueAsNumber -= 0.1;
@@ -357,7 +431,7 @@ export class Aplikacija {
   incrementZPlus() {
     switch (this.tranformationType) {
       case "rotation":
-        this.fieldRotateZ.valueAsNumber += 0.1;
+        this.fieldRotateZ.valueAsNumber += 1;
         break;
       case "scale":
         this.fieldScaleZ.valueAsNumber += 0.1;
@@ -371,7 +445,7 @@ export class Aplikacija {
   incrementZMinus() {
     switch (this.tranformationType) {
       case "rotation":
-        this.fieldRotateZ.valueAsNumber -= 0.1;
+        this.fieldRotateZ.valueAsNumber -= 1;
         break;
       case "scale":
         this.fieldScaleZ.valueAsNumber -= 0.1;
@@ -598,7 +672,6 @@ export class Aplikacija {
   // Vrstni red je baje najprej povečava, potem rotacija in nazadnje premik
 
   getTransformacijskaMatrika() {
-
     // Prvo Množenja
     /* Preveri še kaj se dogaja če najprej premaknemo in potem skal, rot... -- Ne pozabi začet z enotsko matriko
     this.transformacijskaMatrika = this.zmnoziMatrike(
@@ -623,6 +696,10 @@ export class Aplikacija {
       this.getTranslacijskaMatrika(),
       this.transformacijskaMatrika
     );
+
+
+    // Posodobi koordinate vsakega oglišča
+    this.posodobiKoordinateOglisc();
   }
 
   /************************************** **********************************/
@@ -635,13 +712,25 @@ export class Aplikacija {
   // 2:1 (oz. 1:2) za ta canvas k sm ga jst kle narisu).
 
 
+  // Stvar #2:
   // Field of View (Polje Pogleda??) - to je kot, s katerim večamo polje našega pogleda.. večji kot, bolj širok je
   // pogled (fish-eye fora), manjši je kot bl je zoom-iran..
   // Se prav, večji kot, večji je naš pogled in posamezen objekt je manjši.. manjši kot vidimo manj in so objekti večji.
-  // Povezan je z aspect ratiom - če vzamemo višino/dolžino  gledamo fov kot po vertikali,
-  // če vzamemo dolžino/višino pa po horizontali.
+  // Povezan je z aspect ratiom - če vzamemo višino/dolžino  gledamo fov kot po vertikali -- fovY,
+  // če vzamemo dolžino/višino pa po horizontali -- fovX.
 
 
+  // Stvar #3:
+  // far plane pa near plane -- to določa kok daleč pa kok blizu lahk vidmo (po z-osi kamere ponavad)
+  // vse kar ma večji z od far-ja je predaleč od oči in izgine, vse kar ma z manj on near-ja je preblizu nosa dab vidl..
+  // (emm sidenote, obrni "večji" in "manjši", odvisno od tega a je levi ali desni koordinatni sistem)
+
+
+  // Končna Perspektivna Matrika
+
+  getPerspektivnoMatriko() {
+    return [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,1,0]]
+  }
 
   /************************************** **********************************/
   // Funkcije za risanje po platnu
@@ -661,7 +750,7 @@ export class Aplikacija {
 
         // Oglišče pri katerem končamo -- nardi wrap around če smo na zadnjem indeksu
         let koncnoOglisceIndeks = (this.seznamPovezav[i].length === j + 1)? this.seznamPovezav[i][0] : this.seznamPovezav[i][j + 1];
-        koncnoOglisceIndeks -= 1; // Oglisca v seznamo se začnejo z 1 zato odštejem kle
+        koncnoOglisceIndeks -= 1; // Oglisca v seznamu se začnejo z 1 zato odštejem kle
 
 
         context.beginPath();
@@ -673,12 +762,41 @@ export class Aplikacija {
     }
   }
 
+  narisiKoordinate() {
+    for (let i = 0; i < this.seznamOglisc.length; i++) {
+      this.seznamOglisc[i].narisiKoordinateOglisc(this.canvasContext);
+    }
+  }
+
+  // Posodobi Koordinate Oglišč samo ko se spremeni Tranformacijska Matrika ali Perspektiva
+
+  posodobiKoordinateOglisc() {
+    for (const oglisce of this.seznamOglisc) {
+      // Ortografsko
+      let vektor = this.zmnoziMatrike(this.transformacijskaMatrika, [
+        oglisce.zacetneKoordinate,
+      ]);
+      vektor = vektor[0]
+
+      // Dodaj Perspektivo PLACDRŽAČ
+      if (this.aliNarisemSPerspektivo) {
+        if (vektor[2] !== 0) {
+          vektor[0] /= vektor[2]
+          vektor[1] /= vektor[2]
+        }
+      }
+      oglisce.risaniVektor = vektor;
+    }
+  }
+
   /************************************** **********************************/
-  // Update Function?! -- To bomo klicali vsakih 16 milisekund (standard za 60fps oziroma herzou)
+  // Update Function?! -- To bomo klicali vsakih 33 milisekund (30fps oziroma herzou)
   /************************************** **********************************/
 
   update(app) {
     app.canvasContext.clearRect(0, 0, app.canvas.width, app.canvas.height);
+
+    // Vrtenje
     if(app.spinXYeah) {
       app.incrementXPlus();
     }
@@ -688,18 +806,16 @@ export class Aplikacija {
     if(app.spinZYeah) {
       app.incrementZPlus();
     }
-    for (const oglisce of app.seznamOglisc) {
-      const vektor = app.zmnoziMatrike(app.transformacijskaMatrika, [
-        oglisce.zacetneKoordinate,
-      ]);
-      oglisce.risaniVektor = vektor[0];
-    }
 
+    // Risanje
     if (app.aliNarisemPovezave) {
       app.narisiPovezave();
     }
     if (app.aliNarisemOglisca) {
       app.narisiOglisca();
+    }
+    if (app.aliNarisemKoordinateOglisc) {
+      app.narisiKoordinate();
     }
   }
 }

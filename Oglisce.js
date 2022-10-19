@@ -13,7 +13,7 @@ export class Oglisce {
   // Rišemo tako, da najdemo sredino (x je 700, y pa 350), prištejemo lokacijo točke, in pomnožimo z magar 100, tako da je 100px razlike med najbolj desno
   // najbol levo- oziroma najbolj gor in najbolj dol, oziroma kvadratnikoren od dva od najbolj desnogor do najbolj desnodol itd itd...
   // Nariše okrogla vozlišča
-  // arc(x, y, r, začetni kot, končni kot) --- x, y sta središčne koordinate krogota, r je polmer, kot povek kok kroga nariše 2 pija je cel krog 
+  // arc(x, y, r, začetni kot, končni kot) --- x, y sta središčne koordinate krogota, r je polmer, kot povek kok kroga nariše 2 pija je cel krog
   narisiOglisce(ctx) {
     ctx.beginPath();
     ctx.arc(
@@ -25,6 +25,15 @@ export class Oglisce {
     );
     ctx.fillStyle = "red";
     ctx.fill();
+
+
+  }
+
+  narisiKoordinateOglisc(ctx) {
+    ctx.fillStyle = "black";
+    ctx.fillText("x: "+ this.risaniVektor[0].toFixed(3) + " y: "+this.risaniVektor[1].toFixed(3) + " z: " + this.risaniVektor[2].toFixed(3),
+        680 + this.risaniVektor[0] * 100,
+        340 + this.risaniVektor[1] * 100);
   }
 
   // Kvadratki so hitrejši za narisat, sam krogci so lepši

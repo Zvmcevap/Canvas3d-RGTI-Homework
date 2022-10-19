@@ -11,6 +11,9 @@
     <div class="mainDiv">
       <h1>Cry Engine</h1>
       <canvas id="myCanvas"></canvas>
+      <div class="control-box">
+        <input type="file" name="inputFile" id="inputFile" />
+      </div>
       <div class="controls">
         <div class="control-buttons">
           <button class="control-button z-axis" id="q">Q</button>
@@ -85,15 +88,15 @@
           <legend>Rotacija</legend>
           <div class="radio x-axis">
             <label for="rotate-x">X</label>
-            <input type="number" id="rotate-x" name="rotate-x" step="0.1" />
+            <input type="number" id="rotate-x" name="rotate-x" step="1" />
           </div>
           <div class="radio y-axis">
             <label for="rotate-y">Y</label>
-            <input type="number" id="rotate-y" name="rotate-y" step="0.1" />
+            <input type="number" id="rotate-y" name="rotate-y" step="1" />
           </div>
           <div class="radio z-axis">
             <label for="rotate-z">Z</label>
-            <input type="number" id="rotate-z" name="rotate-z" step="0.1" />
+            <input type="number" id="rotate-z" name="rotate-z" step="1" />
           </div>
         </fieldset>
         <fieldset class="control-box">
@@ -111,12 +114,49 @@
             <input type="number" id="scale-z" name="scale-z" step="0.1" />
           </div>
         </fieldset>
-        <div class="control-box">
-          <input type="file" name="inputFile" id="inputFile" />
-        </div>
-        <div class="control-box">
-          <button id="but">TESTER</button>
-        </div>
+        <fieldset class="control-box">
+          <legend>         <input type="checkbox" id="perspektiva" name="perspektiva">
+            <label for="perspektiva">Perspektiva</label></legend>
+          <div class="radio">
+            <label for="fovx">FOV</label>
+            <input type="number" id="fovx" name="fovx" step="1" min="0" max="360"/>
+          </div>
+          <div class="radio">
+            <label for="zNear">zNear</label>
+            <input type="number" id="zNear" name="zNear" step="0.1"/>
+          </div>
+          <div class="radio">
+            <label for="zFar">zFar</label>
+            <input type="number" id="zFar" name="zFar" step="0.1" />
+          </div>
+        </fieldset>
+        <fieldset class="control-box">
+          <legend>Nariši</legend>
+          <div class="radio">
+            <input
+                    type="checkbox"
+                    id="narisiOglisce"
+                    name="narisiOglisce"
+            />
+            <label for="narisiOglisce">Oglišča</label>
+          </div>
+          <div class="radio">
+            <input
+                    type="checkbox"
+                    id="narisiPovezave"
+                    name="narisiPovezave"
+            />
+            <label for="narisiPovezave">Povezave</label>
+          </div>
+          <div class="radio">
+            <input
+                    type="checkbox"
+                    id="narisiKoordinate"
+                    name="narisiKoordinate"
+            />
+            <label for="narisiKoordinate">Koordinate</label>
+          </div>
+        </fieldset>
         <div class="control-box">
           <button id="spinx">BABY</button>
           <button id="spiny">ROUND</button>
