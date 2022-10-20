@@ -124,7 +124,7 @@ export class Aplikacija {
     // Različni seznami s katerimi bomo ustvarjal transformacijsko matriko
     this.skalarSeznam = [1, 1, 1, 1];
     this.rotacijaSeznam = [0, 0, 0, 0];
-    this.premikSeznam = [0, 0, 5, 1];
+    this.premikSeznam = [0, 0, 3, 1];
 
     /************************************** **********************************/
     // Kontrole, različni inputi etc etc
