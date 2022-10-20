@@ -95,7 +95,7 @@ export class Aplikacija {
     // vse kar ma večji z od far-ja je predaleč od oči in izgine, vse kar ma z manj on near-ja je preblizu nosa dab vidl..
     // (emm sidenote, obrni "večji" in "manjši", odvisno od tega a je levi ali desni koordinatni sistem)
 
-    this.zNear = 1;
+    this.zNear = 3;
     this.zFar = 10;
 
     this.perspektivnaMatrika = [
@@ -104,7 +104,18 @@ export class Aplikacija {
     //          .-----------------------To funkcijo-------------------------------'
     //          v
     this.getPerspektivnoMatriko();
-    console.log(this.perspektivnaMatrika);
+
+    /************************************** **********************************/
+    // Perspektiva - Kokr jo naredijo na RGTI predmetu... TA MI JE FUL BL VŠEČ... AMPAK FOV NIČE NE DELA!!!
+    /************************************** **********************************/
+
+    // Testiram kle kera bolj dela, oziroma kera je bol samoumevna... (spoiler alert: nobena ni samoumevna.)
+
+    // Potrebujemo razdaljo od kamere do projekcijske ravnine - npr. naš uč je kamera, html canvas v browserju je projekcijska daljina
+    // Da ne delam 1000 kontrol v htmlju bo naš this.zNear služil kot this.d
+
+    this.perspektivnaMatrikaRGTI = [["Kle se tud ne bomo borile s tem"]];
+    this.getPerspektivnoMatrikoRGTI(); // Kle se bomo :)
 
     // Transformacijska Matrika začne svojo avanturo kot enotska matrika,
     // ki jo potem popačimo (pomnožimo) s skalarno, rotacijsko in nenazadnje (ampak ubistvu nujno nazadnje) s premično matriko
@@ -113,7 +124,7 @@ export class Aplikacija {
     // Različni seznami s katerimi bomo ustvarjal transformacijsko matriko
     this.skalarSeznam = [1, 1, 1, 1];
     this.rotacijaSeznam = [0, 0, 0, 0];
-    this.premikSeznam = [0, 0, 1, 1];
+    this.premikSeznam = [0, 0, 5, 1];
 
     /************************************** **********************************/
     // Kontrole, različni inputi etc etc
@@ -148,6 +159,7 @@ export class Aplikacija {
     this.perspektivaCheckbox.addEventListener("change", function () {
       document.app.aliNarisemSPerspektivo = this.checked;
       document.app.getPerspektivnoMatriko();
+      document.app.getPerspektivnoMatrikoRGTI()
       document.app.posodobiKoordinateOglisc();
     });
 
@@ -157,6 +169,7 @@ export class Aplikacija {
     this.fieldFov.addEventListener("change", function () {
       document.app.fov = this.valueAsNumber;
       document.app.getPerspektivnoMatriko();
+      document.app.getPerspektivnoMatrikoRGTI()
       document.app.posodobiKoordinateOglisc();
     });
     this.fieldFov.addEventListener("mouseover", function () {
@@ -168,6 +181,7 @@ export class Aplikacija {
     this.fieldZNear.addEventListener("change", function () {
       document.app.zNear = this.valueAsNumber;
       document.app.getPerspektivnoMatriko();
+      document.app.getPerspektivnoMatrikoRGTI()
       document.app.posodobiKoordinateOglisc();
     });
     this.fieldZNear.addEventListener("mouseover", function () {
@@ -747,7 +761,7 @@ export class Aplikacija {
       [f * this.aspectRatio, 0, 0, 0],
       [0, f, 0, 0],
       [0, 0, lambdaSimbol, 1],
-      [0, 0, lambdaSimbol * -this.zNear, 0],
+      [0, 0, lambdaSimbol * (-this.zNear), 0],
     ];
 
     /* Okej zgornja celotna neokrajšana matrika naj bi bla:
@@ -761,6 +775,18 @@ export class Aplikacija {
     k to množimo z  vektorjem [x1, y1, z1, 1] v w column shranimo z, in potem x y z delimo z w spet da dobimo vektor oblike [x2/z1, y2/z1, z2/z1, 1]
     kjer sta z1 - originalni z, in z2 - spremenjeni s perspektivo z...zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
     */
+  }
+
+  /********************************* ***************************************/
+  // Perspektiva the RGTI way
+  /********************************* **************************************/
+  getPerspektivnoMatrikoRGTI() {
+    this.perspektivnaMatrikaRGTI = [
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 0, 1,( 1 / this.zNear)],
+      [0, 0, 0, 0]
+    ];
   }
 
   /************************************** **********************************/
@@ -824,8 +850,8 @@ export class Aplikacija {
 
       // Dodaj Perspektivo PLACDRŽAČ
       if (this.aliNarisemSPerspektivo) {
-        vektor = this.zmnoziMatrike(this.perspektivnaMatrika, vektor);
-        if (vektor[0][2] !== 0) {
+        vektor = this.zmnoziMatrike(this.perspektivnaMatrikaRGTI, vektor);
+        if (vektor[0][3] !== 0) {
           vektor[0][0] /= vektor[0][3];
           vektor[0][1] /= vektor[0][3];
           vektor[0][2] /= vektor[0][3];
