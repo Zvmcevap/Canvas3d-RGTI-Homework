@@ -98,9 +98,13 @@ export class Aplikacija {
     this.zNear = 1;
     this.zFar = 10;
 
-    this.perspektivnaMatrika = [["Naumo se kle matral s tem, glej funkcijo k jo ustvar"]]
+    this.perspektivnaMatrika = [
+      ["Naumo se kle matral s tem, glej funkcijo k jo ustvar"],
+    ];
+    //          .-----------------------To funkcijo-------------------------------'
+    //          v
     this.getPerspektivnoMatriko();
-    console.log(this.perspektivnaMatrika)
+    console.log(this.perspektivnaMatrika);
 
     // Transformacijska Matrika začne svojo avanturo kot enotska matrika,
     // ki jo potem popačimo (pomnožimo) s skalarno, rotacijsko in nenazadnje (ampak ubistvu nujno nazadnje) s premično matriko
@@ -498,7 +502,7 @@ export class Aplikacija {
       if (element[0] === "v") {
         const listaKoordinat = [];
         for (let j = 1; j < element.length; j++) {
-          listaKoordinat.push(Number(element[j]) - 0.5);
+          listaKoordinat.push(Number(element[j]) * 2 - 1);
         }
         const novoOglisce = new Oglisce(listaKoordinat);
         this.seznamOglisc.push(novoOglisce);
@@ -734,16 +738,16 @@ export class Aplikacija {
     // Na voljo imamo aspect ratio, fov, zNear in zFar clipping plane, zdej pa:
 
     // Vzamemo inverz tangens polovice kota fov -- zato ker emm pravokotni trikotnik... trigonometrija.. pitajgoro...
-    let f = 1 / Math.tan(this.fov * Math.PI / 360);
+    let f = 1 / Math.tan((this.fov * Math.PI) / 360);
 
     // zNear pa zFar mal množimo, mal odštevamo, mal čirule čarule med sabo (ta je res zapletena matrika, kaj naj ti jst XD)
-    let lambdaSimbol = this.zFar/(this.zFar - this.zNear);
+    let lambdaSimbol = this.zFar / (this.zFar - this.zNear);
 
     this.perspektivnaMatrika = [
       [f * this.aspectRatio, 0, 0, 0],
       [0, f, 0, 0],
       [0, 0, lambdaSimbol, 1],
-      [0, 0, -lambdaSimbol * this.zNear, 0]
+      [0, 0, lambdaSimbol * -this.zNear, 0],
     ];
 
     /* Okej zgornja celotna neokrajšana matrika naj bi bla:
@@ -765,7 +769,13 @@ export class Aplikacija {
 
   narisiOglisca() {
     for (let i = 0; i < this.seznamOglisc.length; i++) {
-      this.seznamOglisc[i].narisiOglisce(this.canvasContext);
+      // prever clipping plane, če rabaš to sploh risat
+      if (
+        !(this.seznamOglisc[i].risaniVektor[2] < this.zNear) ||
+        !(this.seznamOglisc[i].risaniVektor[2] > this.zFar)
+      ) {
+        this.seznamOglisc[i].narisiOglisce(this.canvasContext);
+      }
     }
   }
   narisiPovezave() {
@@ -811,11 +821,10 @@ export class Aplikacija {
       let vektor = this.zmnoziMatrike(this.transformacijskaMatrika, [
         oglisce.zacetneKoordinate,
       ]);
-      
 
       // Dodaj Perspektivo PLACDRŽAČ
-      if (this.aliNarisemSPerspektivo) {        
-        vektor = this.zmnoziMatrike(this.perspektivnaMatrika, vektor)
+      if (this.aliNarisemSPerspektivo) {
+        vektor = this.zmnoziMatrike(this.perspektivnaMatrika, vektor);
         if (vektor[0][2] !== 0) {
           vektor[0][0] /= vektor[0][3];
           vektor[0][1] /= vektor[0][3];
