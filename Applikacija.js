@@ -1,4 +1,5 @@
 import { Oglisce } from "./Oglisce.js";
+import { Quaternion } from "./Quaternion.js";
 
 export class Aplikacija {
   constructor() {
@@ -127,6 +128,13 @@ export class Aplikacija {
     this.premikSeznam = [0, 0, 3, 1];
 
     /************************************** **********************************/
+    // Kvaternion Class
+    /************************************** **********************************/
+
+    this.kvaternion = new Quaternion(0, 0, 0, 1);
+    this.obracajSKvaternionom = true;
+
+    /************************************** **********************************/
     // Kontrole, različni inputi etc etc
     /************************************** **********************************/
 
@@ -152,6 +160,13 @@ export class Aplikacija {
       document.app.aliNarisemKoordinateOglisc = this.checked;
     });
 
+    this.aliNarisemVektorje = true;
+    this.vektorCheckbox = document.getElementById("narisiVektor");
+    this.vektorCheckbox.checked = true;
+    this.vektorCheckbox.addEventListener("change", function () {
+      document.app.aliNarisemVektorje = this.checked;
+    });
+
     // Perspektiva
     this.aliNarisemSPerspektivo = false;
     this.perspektivaCheckbox = document.getElementById("perspektiva");
@@ -159,7 +174,7 @@ export class Aplikacija {
     this.perspektivaCheckbox.addEventListener("change", function () {
       document.app.aliNarisemSPerspektivo = this.checked;
       document.app.getPerspektivnoMatriko();
-      document.app.getPerspektivnoMatrikoRGTI()
+      document.app.getPerspektivnoMatrikoRGTI();
       document.app.posodobiKoordinateOglisc();
     });
 
@@ -169,7 +184,7 @@ export class Aplikacija {
     this.fieldFov.addEventListener("change", function () {
       document.app.fov = this.valueAsNumber;
       document.app.getPerspektivnoMatriko();
-      document.app.getPerspektivnoMatrikoRGTI()
+      document.app.getPerspektivnoMatrikoRGTI();
       document.app.posodobiKoordinateOglisc();
     });
     this.fieldFov.addEventListener("mouseover", function () {
@@ -181,7 +196,7 @@ export class Aplikacija {
     this.fieldZNear.addEventListener("change", function () {
       document.app.zNear = this.valueAsNumber;
       document.app.getPerspektivnoMatriko();
-      document.app.getPerspektivnoMatrikoRGTI()
+      document.app.getPerspektivnoMatrikoRGTI();
       document.app.posodobiKoordinateOglisc();
     });
     this.fieldZNear.addEventListener("mouseover", function () {
@@ -295,6 +310,51 @@ export class Aplikacija {
     });
     this.fieldRotateZ.app = this;
     this.fieldRotateZ.addEventListener("change", this.numberFieldOnChange);
+    /************************************************** */
+    this.staticComponent = "w";
+    this.fieldKvaternionX = document.getElementById("kvat-x");
+    this.fieldKvaternionX.valueAsNumber = this.kvaternion.x;
+    this.fieldKvaternionX.addEventListener("mouseover", function () {
+      this.focus();
+    });
+    this.fieldKvaternionX.app = this;
+    this.fieldKvaternionX.addEventListener("change", function () {
+      this.app.staticComponent = "x";
+      this.app.numberFieldOnChange();
+    });
+    this.fieldKvaternionY = document.getElementById("kvat-y");
+    this.fieldKvaternionY.valueAsNumber = this.kvaternion.y;
+    this.fieldKvaternionY.addEventListener("mouseover", function () {
+      this.focus();
+    });
+    this.fieldKvaternionY.app = this;
+    this.fieldKvaternionY.addEventListener("change", function () {
+      this.app.staticComponent = "y";
+      this.app.numberFieldOnChange();
+    });
+    this.fieldKvaternionZ = document.getElementById("kvat-z");
+    this.fieldKvaternionZ.valueAsNumber = this.kvaternion.z;
+    this.fieldKvaternionZ.addEventListener("mouseover", function () {
+      this.focus();
+    });
+    this.fieldKvaternionZ.app = this;
+    this.fieldKvaternionZ.addEventListener("change", function () {
+      this.app.staticComponent = "z";
+      this.app.numberFieldOnChange();
+    });
+
+    this.fieldKvaternionW = document.getElementById("kvat-w");
+    this.fieldKvaternionW.valueAsNumber = this.kvaternion.w;
+    this.fieldKvaternionW.addEventListener("mouseover", function () {
+      this.focus();
+    });
+    this.fieldKvaternionW.app = this;
+    this.fieldKvaternionW.addEventListener("change", function () {
+      this.app.staticComponent = "w";
+      this.app.numberFieldOnChange();
+    });
+
+    /****************************************************** */
 
     this.fieldTranslateX = document.getElementById("translate-x");
     this.fieldTranslateX.valueAsNumber = this.premikSeznam[0];
@@ -378,6 +438,18 @@ export class Aplikacija {
       (this.app.fieldRotateZ.valueAsNumber * Math.PI) / 180,
       1,
     ];
+
+    this.app.kvaternion.w = this.app.fieldKvaternionW.valueAsNumber;
+    this.app.kvaternion.x = this.app.fieldKvaternionX.valueAsNumber;
+    this.app.kvaternion.y = this.app.fieldKvaternionY.valueAsNumber;
+    this.app.kvaternion.z = this.app.fieldKvaternionZ.valueAsNumber;
+
+    this.app.kvaternion.normalizirajKvaternion(this.app.staticComponent);
+    this.app.fieldKvaternionW.valueAsNumber = this.app.kvaternion.w;
+    this.app.fieldKvaternionX.valueAsNumber = this.app.kvaternion.x;
+    this.app.fieldKvaternionY.valueAsNumber = this.app.kvaternion.y;
+    this.app.fieldKvaternionZ.valueAsNumber = this.app.kvaternion.z;
+
     this.app.getTransformacijskaMatrika();
   }
 
@@ -675,12 +747,18 @@ export class Aplikacija {
   // na isti način bomo dobil transformacijsko matriko potem ko dodamo povečavo in premik.
 
   getRotacijskaMatrika() {
-    let rm = this.zmnoziMatrike(
-      this.getRotacijskaMatrikaXZ(),
-      this.getRotacijskaMatrikaYZ()
-    );
-    rm = this.zmnoziMatrike(this.getRotacijskaMatrikaXY(), rm);
-    return rm;
+    // Kvaternioni
+    if (this.obracajSKvaternionom) {
+      this.kvaternion.quatObrat(this.rotacijaSeznam);
+      return this.kvaternion.quatVRotMatriko();
+    } else {
+      // Evlerjevi koti
+      let rm = this.zmnoziMatrike(
+        this.getRotacijskaMatrikaXZ(),
+        this.getRotacijskaMatrikaYZ()
+      );
+      return this.zmnoziMatrike(this.getRotacijskaMatrikaXY(), rm);
+    }
   }
 
   // Kle bo sam testna rotacijska matrika, ker me ferbc matra kaj se zgodi če nobene osi ne držimo pr miru
@@ -761,7 +839,7 @@ export class Aplikacija {
       [f * this.aspectRatio, 0, 0, 0],
       [0, f, 0, 0],
       [0, 0, lambdaSimbol, 1],
-      [0, 0, lambdaSimbol * (-this.zNear), 0],
+      [0, 0, lambdaSimbol * -this.zNear, 0],
     ];
 
     /* Okej zgornja celotna neokrajšana matrika naj bi bla:
@@ -784,8 +862,8 @@ export class Aplikacija {
     this.perspektivnaMatrikaRGTI = [
       [1, 0, 0, 0],
       [0, 1, 0, 0],
-      [0, 0, 1,( 1 / this.zNear)],
-      [0, 0, 0, 0]
+      [0, 0, 1, 1 / this.zNear],
+      [0, 0, 0, 0],
     ];
   }
 
@@ -828,9 +906,57 @@ export class Aplikacija {
           350 + this.seznamOglisc[koncnoOglisceIndeks].risaniVektor[1] * 100
         );
         context.lineWidth = 1;
+        context.strokeStyle = "black";
         context.stroke();
       }
     }
+  }
+
+  narisiVektorje() {
+    // To bo za orientacijo x,y,z koordinatnega sistema
+    const context = this.canvasContext;
+    const zacetnoOglisce = this.seznamOglisc[1];
+
+    // X-Vektor
+    let koncnoOglisce = this.seznamOglisc[5];
+    this.narisiPuscico(context, zacetnoOglisce, koncnoOglisce, "red");
+    
+    // Y-Vektor
+    koncnoOglisce = this.seznamOglisc[0];
+    this.narisiPuscico(context, zacetnoOglisce, koncnoOglisce, "green");
+
+    // Z-Vektor
+    koncnoOglisce = this.seznamOglisc[3];
+    this.narisiPuscico(context, zacetnoOglisce, koncnoOglisce, "blue");
+  }
+
+  narisiPuscico(context, zacetnoOglisce, koncnoOglisce, style) {
+    const fromx = 700 + zacetnoOglisce.risaniVektor[0] * 100;
+    const fromy = 350 + zacetnoOglisce.risaniVektor[1] * 100;
+
+    const tox = 700 + koncnoOglisce.risaniVektor[0] * 100;
+    const toy = 350 + koncnoOglisce.risaniVektor[1] * 100;
+
+    const headlen = 20; // dolžina glave v px
+    const dx = tox - fromx;
+    const dy = toy - fromy;
+    const angle = Math.atan2(dy, dx);
+
+    context.beginPath();
+    context.moveTo(fromx, fromy);
+    context.lineTo(tox, toy);
+    context.lineTo(
+      tox - headlen * Math.cos(angle - Math.PI / 6),
+      toy - headlen * Math.sin(angle - Math.PI / 6)
+    );
+    context.moveTo(tox, toy);
+    context.lineTo(
+      tox - headlen * Math.cos(angle + Math.PI / 6),
+      toy - headlen * Math.sin(angle + Math.PI / 6)
+    );
+    context.lineWidth = 5;
+    context.strokeStyle = style;
+    context.stroke();
   }
 
   narisiKoordinate() {
@@ -847,6 +973,11 @@ export class Aplikacija {
       let vektor = this.zmnoziMatrike(this.transformacijskaMatrika, [
         oglisce.zacetneKoordinate,
       ]);
+      if (vektor[0][2] === 0) {
+        oglisce.r = 0.001;
+      } else {
+        oglisce.r = vektor[0][2];
+      }
 
       // Dodaj Perspektivo PLACDRŽAČ
       if (this.aliNarisemSPerspektivo) {
@@ -889,6 +1020,9 @@ export class Aplikacija {
     }
     if (app.aliNarisemKoordinateOglisc) {
       app.narisiKoordinate();
+    }
+    if (app.aliNarisemVektorje) {
+      app.narisiVektorje();
     }
   }
 }

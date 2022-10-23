@@ -85,7 +85,7 @@
         </fieldset>
 
         <fieldset class="control-box">
-          <legend>Rotacija</legend>
+          <legend>Rotacija Evler</legend>
           <div class="radio x-axis">
             <label for="rotate-x">X</label>
             <input type="number" id="rotate-x" name="rotate-x" step="1" />
@@ -97,6 +97,25 @@
           <div class="radio z-axis">
             <label for="rotate-z">Z</label>
             <input type="number" id="rotate-z" name="rotate-z" step="1" />
+          </div>
+        </fieldset>
+        <fieldset class="control-box">
+          <legend>Rotacija Kvaternion</legend>
+          <div class="radio x-axis">
+            <label for="kvat-x">X</label>
+            <input type="number" id="kvat-x" name="kvat-x" step="0.05" />
+          </div>
+          <div class="radio y-axis">
+            <label for="kvat-y">Y</label>
+            <input type="number" id="kvat-y" name="kvat-y" step="0.05" />
+          </div>
+          <div class="radio z-axis">
+            <label for="kvat-z">Z</label>
+            <input type="number" id="kvat-z" name="kvat-z" step="0.05" />
+          </div>
+          <div class="radio w-axis">
+            <label for="kvat-w">W</label>
+            <input type="number" id="kvat-w" name="kvat-w" step="0.05" />
           </div>
         </fieldset>
         <fieldset class="control-box">
@@ -156,11 +175,20 @@
             />
             <label for="narisiKoordinate">Koordinate</label>
           </div>
+          <div class="radio">
+            <input
+                    type="checkbox"
+                    id="narisiVektor"
+                    name="narisiVektor"
+            />
+            <label for="narisiVektor">Vektor</label>
+          </div>
         </fieldset>
         <div class="control-box">
-          <button id="spinx">BABY</button>
-          <button id="spiny">ROUND</button>
-          <button id="spinz">ROUND</button>
+          <button id="spinx" class="x-axis">X++</button>
+          <button id="spiny" class="y-axis">Y++</button>
+          <button id="spinz" class="z-axis">Z++</button>
+          <button id="spinw" class="w-axis">W++</button>
         </div>
       </div>
     </div>
